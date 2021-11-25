@@ -14,18 +14,6 @@ def read_input(input):
 
     return matrix
 
-def matmul(A,B):
-    matrix = []
-    for i in range(len(A)):
-        row = []
-        for j in range(len(B[0])):
-            sum = 0
-            for k in range(len(B)):
-                sum += A[i][k] * B[k][j]
-            row.append(sum)
-        matrix.append(row)
-    return matrix
-
 def forward(A, B, O, pi):
     alpha = []
     # initialisation step
