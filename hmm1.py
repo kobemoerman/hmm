@@ -17,7 +17,7 @@ def read_input(input):
 def forward(A, B, O, pi):
     alpha = []
     # initialisation step
-    for s in range(len(B)):
+    for s in range(len(A)):
         alpha.append(pi[s] * B[s][O[0]])
 
     # recursion step
@@ -25,8 +25,8 @@ def forward(A, B, O, pi):
         state = []
         for s in range(len(A)):
             # prob[s'][t-1] * A[s'][s] * B[s][O[t]]
-            temp = [alpha[k] * A[k][s] * B[s][O[t]] for k in range(0, len(A))]
-            state.append(sum(temp))
+            forward_path = [alpha[k] * A[k][s] * B[s][O[t]] for k in range(0, len(A))]
+            state.append(sum(forward_path))
         alpha = state
 
     return sum(alpha)
