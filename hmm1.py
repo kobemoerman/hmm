@@ -27,6 +27,7 @@ def forward(A, B, O, pi):
             state.append(sum(forward_path))
         alpha.append(state)
 
+    # termination step
     return sum(alpha[len(O)-1])
 
 input = sys.stdin
