@@ -17,19 +17,17 @@ def read_input(input):
 def forward(A, B, O, pi):
     alpha = []
     # initialisation step
-    for s in range(len(A)):
-        alpha.append(pi[s] * B[s][O[0]])
+    alpha.append([pi[s]*B[s][O[0]] for s in range(len(A))])
 
     # recursion step
     for t in range(1, len(O)):
         state = []
         for s in range(len(A)):
-            # prob[s'][t-1] * A[s'][s] * B[s][O[t]]
-            forward_path = [alpha[k] * A[k][s] * B[s][O[t]] for k in range(0, len(A))]
+            forward_path = [alpha[t-1][k] * A[k][s] * B[s][O[t]] for k in range(0, len(A))]
             state.append(sum(forward_path))
-        alpha = state
+        alpha.append(state)
 
-    return sum(alpha)
+    return sum(alpha[len(O)-1])
 
 input = sys.stdin
 A = read_input(input.readline())

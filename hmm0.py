@@ -31,15 +31,8 @@ input = sys.stdin
 A = read_input(input.readline())
 B = read_input(input.readline())
 pi = read_input(input.readline())
-print(A)
-print(B)
-print(pi)
-
-temp = matmul(pi, A)
-print(temp)
 
 trans = matmul(matmul(pi, A), B)
-print(trans)
 
 res = ""
 res = res + str(len(trans)) + " " + str(len(trans[0]))
