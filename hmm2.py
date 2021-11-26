@@ -1,10 +1,6 @@
 import sys
 import fileinput
 
-def argmax(list):
-    f = lambda i: list[i]
-    return max(range(len(list)), key=f)
-
 def read_input(input):
     input = list(map(float, input.split()))
 
@@ -40,8 +36,9 @@ def viterbi(A, B, O, pi):
         ptr = []
         for s in range(len(A)):
             path = [v[t-1][k] * A[k][s] * B[s][O[t]] for k in range(len(A))]
-            state.append(max(path))
-            ptr.append(argmax(path))
+            max_path = max(path)
+            state.append(max_path)
+            ptr.append(path.index(max_path))
         v.append(state)
         back_ptr.append(ptr)
 
@@ -49,7 +46,9 @@ def viterbi(A, B, O, pi):
     best_path_prob = []
     best_path_ptr = []
 
-    best_path(best_path_ptr, back_ptr, argmax(back_ptr[len(O)-1]), len(O)-1)
+    n = len(O)-1
+    end_idx = back_ptr[n].index(max(back_ptr[n]))
+    best_path(best_path_ptr, back_ptr, end_idx, n)
 
     return best_path_ptr
 
