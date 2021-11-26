@@ -32,8 +32,8 @@ def viterbi(A, B, O, pi):
 
     # recursive step
     for t in range(1, len(O)):
-        state = []
         ptr = []
+        state = []
         for s in range(len(A)):
             path = [v[t-1][k] * A[k][s] * B[s][O[t]] for k in range(len(A))]
             max_path = max(path)
@@ -47,7 +47,7 @@ def viterbi(A, B, O, pi):
     best_path_ptr = []
 
     n = len(O)-1
-    end_idx = back_ptr[n].index(max(back_ptr[n]))
+    end_idx = v[n].index(max(v[n]))
     best_path(best_path_ptr, back_ptr, end_idx, n)
 
     return best_path_ptr
@@ -60,5 +60,4 @@ pi = read_input(input.readline())[0]
 O = [int(elem) for elem in input.readline().split()[1:]]
 
 path = viterbi(A, B, O, pi)
-
 print(" ".join(map(str, path)))
