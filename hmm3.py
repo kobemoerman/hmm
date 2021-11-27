@@ -19,7 +19,7 @@ def backward(A, B, O, pi, c):
     beta = []
 
     #initialisation step
-    beta.append([c[len(O)-1] for i in range(len(A))])
+    beta.extend([[c[len(O)-1]]*len(A)])
 
     # recursion step
     for t in range(len(O)-2, -1, -1):
@@ -90,15 +90,15 @@ def maximise_A(n_state, n_obs, gamma, digamma):
 
     return A
 
-def maximise_B(O, n_state, n_obs, gamma, digamma):
+def maximise_B(B_est, O, n_state, n_obs, gamma):
     B = []
 
     for i in range(n_state):
         i_trans = sum([gamma[t][i] for t in range(n_obs)])
 
         B_new = []
-        for j in range(n_state):
-            ij_trans = sum([digamma[t][i][j] for t in range(n_obs) if O[t] == j])
+        for j in range(len(B_est[0])):
+            ij_trans = sum([gamma[t][i] for t in range(n_obs) if O[t] == j])
             B_new.append(ij_trans/i_trans)
         B.append(B_new)
 
@@ -114,11 +114,12 @@ def baum_welch(A, B, O, pi):
 
     # expectation step
     gamma, digamma = estimator(A, B, O, alpha, beta)
+    print(gamma[len(A)-1])
 
     # maximisation step (recompute A, B and pi)
     pi = maximise_pi(pi, len(A), gamma)
     A  = maximise_A(len(A), len(O)-1, gamma, digamma)
-    B  = maximise_B(O, len(A), len(O)-1, gamma, digamma)
+    B  = maximise_B(B, O, len(A), len(O)-1, gamma)
 
     # log_prob = compute_convergence(c, len(O))
 
@@ -142,9 +143,6 @@ A_est  = read_input(input.readline())
 B_est  = read_input(input.readline())
 pi_est = read_input(input.readline())[0]
 O_est  = [int(elem) for elem in input.readline().split()[1:]]
-
-print(A_est)
-print(B_est)
 
 # learn transition and emission probabilities
 A, B = baum_welch(A_est, B_est, O_est, pi_est)
