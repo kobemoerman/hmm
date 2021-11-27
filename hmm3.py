@@ -17,11 +17,12 @@ def read_input(input):
 
 def backward(A, B, O, pi, c):
     beta = []
+
     #initialisation step
-    beta.extend([[1]*len(A)])
+    beta.append([c[len(O)-1] for i in range(len(A))])
 
     # recursion step
-    for t in range(0, len(O)-1):
+    for t in range(len(O)-2, -1, -1):
         state = []
         for s in range(len(A)):
             backward_path = [beta[0][k] * A[s][k] * B[k][O[t+1]] for k in range(len(A))]
@@ -107,25 +108,23 @@ def baum_welch(A, B, O, pi):
     log_prob = 1
     convergence = float('-inf')
 
-    while (log_prob > convergence):
-        alpha, c, _ = forward(A, B, O, pi)
-        beta = backward(A, B, O, pi, c[::-1])
+    # while (log_prob > convergence):
+    alpha, c, _ = forward(A, B, O, pi)
+    beta = backward(A, B, O, pi, c)
 
-        # expectation step
-        gamma, digamma = estimator(A, B, O, alpha, beta)
+    # expectation step
+    gamma, digamma = estimator(A, B, O, alpha, beta)
 
-        # maximisation step (recompute A, B and pi)
-        pi = maximise_pi(pi, len(A), gamma)
-        A  = maximise_A(len(A), len(O)-1, gamma, digamma)
-        B  = maximise_B(O, len(A), len(O)-1, gamma, digamma)
+    # maximisation step (recompute A, B and pi)
+    pi = maximise_pi(pi, len(A), gamma)
+    A  = maximise_A(len(A), len(O)-1, gamma, digamma)
+    B  = maximise_B(O, len(A), len(O)-1, gamma, digamma)
 
-        log_prob = compute_convergence(c, len(O))
+    # log_prob = compute_convergence(c, len(O))
 
-        print(A)
-        print(B)
-        print()
-        print("####")
-        print()
+    print()
+    print()
+
 
     return A, B
 
