@@ -52,26 +52,44 @@ def forward(A, B, O, pi):
     return alpha_n, c, sum(alpha[len(O)-1])
 
 def estimator(A, B, O, alpha, beta):
-    g = []  # gamma
-    dg = [] # di-gamma
+    gamma = []  # gamma
+    digamma = [] # di-gamma
 
     for t in range(len(O)-1):
-        gamma = []
-        digamma = []
+        g = []
+        dg = []
         for s in range(len(A)):
             prob = [alpha[t][s]*A[i][k]*B[k][O[t+1]]*beta[t+1][k] for k in range(len(A))]
-            gamma.append(sum(prob))
-            digamma.append(prob)
-        g.append(gamma)
-        dg.append(digamma)
+            g.append(sum(prob))
+            dg.append(prob)
+        gamma.append(g)
+        digamma.append(dg)
 
-    g.append(alpha[len(O)-1])
+    gamma.append(alpha[len(O)-1])
 
-    return g, dg
+    return gamma, digamma
 
+def maximise_pi(pi_est, n, gamma):
+    return [gamma[0][i] for i in range(n)]
+
+def maximise_A(A_est, n, gamma, digamma):
+    A = [[]]
+
+    for i in range(len(A)):
+        i_trans = 0
+        for t in range(n):
+            i_trans += gamma[t][i]
+
+        for j in range(len(A)):
+            ij_trans = 0
+            for t in range(n):
+                ij_trans += digamma[t][i]
+            A[j].append(ij_trans/i_trans)
+
+    return A
 
 def baum_welch(A, B, O, pi):
-    A = B = []
+    # A = B = []
     log_prob = 1
     convergence = float('-inf')
 
@@ -79,7 +97,12 @@ def baum_welch(A, B, O, pi):
         alpha, c, _ = forward(A, B, O, pi)
         beta = backward(A, B, O, pi, c)
 
+        # expectation step
         gamma, digamma = estimator(A, B, O, alpha, beta)
+
+        # maximisation step (recompute A, B and pi)
+        pi = maximise_pi(pi, len(A), gamma)
+        A  = maximise_A(A, len(O)-1, gamma, digamma)
 
         log_prob = compute_convergence(c, len(O))
 
