@@ -121,6 +121,12 @@ def baum_welch(A, B, O, pi):
 
         log_prob = compute_convergence(c, len(O))
 
+        print(A)
+        print(B)
+        print()
+        print("####")
+        print()
+
     return A, B
 
 def compute_convergence(c, n):
@@ -138,5 +144,11 @@ B_est  = read_input(input.readline())
 pi_est = read_input(input.readline())[0]
 O_est  = [int(elem) for elem in input.readline().split()[1:]]
 
+print(A_est)
+print(B_est)
+
 # learn transition and emission probabilities
 A, B = baum_welch(A_est, B_est, O_est, pi_est)
+
+print(A)
+print(B)
