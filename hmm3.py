@@ -1,4 +1,5 @@
 import sys
+import math
 import fileinput
 
 def read_input(input):
@@ -14,41 +15,69 @@ def read_input(input):
 
     return matrix
 
-def backward(A, B, O, pi):
+def backward(A, B, O, pi, c):
     beta = []
     #initialisation step
     beta.extend([[1]*len(A)])
 
-    for t in range(1, len(O)-1):
+    for t in range(0, len(O)-1):
         state = []
         for s in range(len(A)):
-            backward_path = [beta[0][k] * A[k][s] * B[s][O[t+1]] for k in range(0, len(A))]
-            state.append(sum(backward_path))
+            backward_path = [beta[0][k] * A[s][k] * B[k][O[t+1]] for k in range(len(A))]
+            state.append(c[t]*sum(backward_path))
         beta.insert(0, state)
 
-    return sum(beta[0])
+    return beta
 
 def forward(A, B, O, pi):
+    c = []
     alpha = []
+    alpha_n = []
     # initialisation step
     alpha.append([pi[s]*B[s][O[0]] for s in range(len(A))])
+    c.append(1/sum(alpha[0]))
+    alpha_n.append([c[0]*alpha[0][i] for i in range len(A)])
 
     # recursion step
     for t in range(1, len(O)):
         state = []
         for s in range(len(A)):
-            forward_path = [alpha[t-1][k] * A[k][s] * B[s][O[t]] for k in range(0, len(A))]
+            forward_path = [alpha_n[t-1][k] * A[k][s] * B[s][O[t]] for k in range(len(A))]
             state.append(sum(forward_path))
+        c.append(1/sum(state))
         alpha.append(state)
+        alpha_n.append([c[t]*alpha[t][i] for i in range len(A)])
 
     # termination step
-    return sum(alpha[len(O)-1])
+    return alpha_n, c, sum(alpha[len(O)-1])
 
-input = sys.stdin
-A = read_input(input.readline())
-B = read_input(input.readline())
-pi = read_input(input.readline())[0]
-O = [int(elem) for elem in input.readline().split()[1:]]
+def baum_welch(A, B, O, pi):
+    A = B = []
+    log_prob = 1
+    convergence = float('-inf')
 
-forward(A, B, O, pi)
-backward(A, B, O[::-1], pi)
+    while (log_prob > convergence):
+        alpha, c, _ = forward(A, B, O, pi)
+        beta = backward(A, B, O, pi, c)
+
+        log_prob = compute_convergence(c, len(O))
+
+    return A, B
+
+def compute_convergence(c, n):
+    prob = 0
+
+    for i in range(0, n):
+        prob += math.log(c[i])
+
+    return -prob
+
+# estimates
+input  = sys.stdin
+A_est  = read_input(input.readline())
+B_est  = read_input(input.readline())
+pi_est = read_input(input.readline())[0]
+O_est  = [int(elem) for elem in input.readline().split()[1:]]
+
+# learn transition and emission probabilities
+A, B = baum_welch(A_est, B_est, O_est, pi_est)
