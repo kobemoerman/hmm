@@ -51,6 +51,25 @@ def forward(A, B, O, pi):
     # termination step
     return alpha_n, c, sum(alpha[len(O)-1])
 
+def estimator(A, B, O, alpha, beta):
+    g = []  # gamma
+    dg = [] # di-gamma
+
+    for t in range(len(O)-1):
+        gamma = []
+        digamma = []
+        for s in range(len(A)):
+            prob = [alpha[t][s]*A[i][k]*B[k][O[t+1]]*beta[t+1][k] for k in range(len(A))]
+            gamma.append(sum(prob))
+            digamma.append(prob)
+        g.append(gamma)
+        dg.append(digamma)
+
+    g.append(alpha[len(O)-1])
+
+    return g, dg
+
+
 def baum_welch(A, B, O, pi):
     A = B = []
     log_prob = 1
@@ -59,6 +78,8 @@ def baum_welch(A, B, O, pi):
     while (log_prob > convergence):
         alpha, c, _ = forward(A, B, O, pi)
         beta = backward(A, B, O, pi, c)
+
+        gamma, digamma = estimator(A, B, O, alpha, beta)
 
         log_prob = compute_convergence(c, len(O))
 
