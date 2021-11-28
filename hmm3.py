@@ -119,12 +119,16 @@ def maximise_B(B_est, O, n_state, n_obs, gamma):
 
 def baum_welch(A, B, O, pi):
     iter = 0
-    log_prob = 1
-    convergence = float('-inf')
+    log_prob = float('-inf')
 
-    while (log_prob > convergence and iter < 100):
+    while (True):
+        # forward and backward probabilities
         alpha, c, _ = forward(A, B, O, pi)
         beta = backward(A, B, O, pi, c)
+
+        new_log_prob = compute_convergence(c, len(O))
+        if log_prob >= new_log_prob or iter > 100:
+            break
 
         # expectation step
         gamma, digamma = estimator(A, B, O, alpha, beta)
@@ -134,18 +138,19 @@ def baum_welch(A, B, O, pi):
         A  = maximise_A(len(A), len(O)-1, gamma, digamma)
         B  = maximise_B(B, O, len(A), len(O), gamma)
 
-        log_prob = compute_convergence(c, len(O))
         iter += 1
+        log_prob = new_log_prob
+
 
     return A, B
 
 def compute_convergence(c, n):
-    prob = 0
+    log_prob = 0
 
     for i in range(0, n):
-        prob += math.log(c[i])
+        log_prob += math.log(c[i])
 
-    return -prob
+    return -log_prob
 
 # estimates
 input  = sys.stdin
