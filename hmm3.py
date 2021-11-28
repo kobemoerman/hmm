@@ -15,6 +15,19 @@ def read_input(input):
 
     return matrix
 
+def write_output(matrix):
+    res = ''
+
+    dx, dy = len(matrix), len(matrix[0])
+
+    res += ' '.join(map(str, [dx, dy]))
+    for elem in matrix:
+        elem = [round(e, 6) for e in elem]
+        res = res + ' ' + ' '.join(map(str, elem))
+
+    print(res)
+
+
 def backward(A, B, O, pi, c):
     beta = []
 
@@ -73,7 +86,7 @@ def estimator(A, B, O, alpha, beta):
 
     return gamma, digamma
 
-def maximise_pi(pi_est, n, gamma):
+def maximise_pi(n, gamma):
     return [gamma[0][i] for i in range(n)]
 
 def maximise_A(n_state, n_obs, gamma, digamma):
@@ -105,27 +118,24 @@ def maximise_B(B_est, O, n_state, n_obs, gamma):
     return B
 
 def baum_welch(A, B, O, pi):
+    iter = 0
     log_prob = 1
     convergence = float('-inf')
 
-    # while (log_prob > convergence):
-    alpha, c, _ = forward(A, B, O, pi)
-    beta = backward(A, B, O, pi, c)
+    while (log_prob > convergence and iter < 100):
+        alpha, c, _ = forward(A, B, O, pi)
+        beta = backward(A, B, O, pi, c)
 
-    # expectation step
-    gamma, digamma = estimator(A, B, O, alpha, beta)
-    print(gamma[len(A)-1])
+        # expectation step
+        gamma, digamma = estimator(A, B, O, alpha, beta)
 
-    # maximisation step (recompute A, B and pi)
-    pi = maximise_pi(pi, len(A), gamma)
-    A  = maximise_A(len(A), len(O)-1, gamma, digamma)
-    B  = maximise_B(B, O, len(A), len(O)-1, gamma)
+        # maximisation step (recompute A, B and pi)
+        pi = maximise_pi(len(A), gamma)
+        A  = maximise_A(len(A), len(O)-1, gamma, digamma)
+        B  = maximise_B(B, O, len(A), len(O), gamma)
 
-    # log_prob = compute_convergence(c, len(O))
-
-    print()
-    print()
-
+        log_prob = compute_convergence(c, len(O))
+        iter += 1
 
     return A, B
 
@@ -147,5 +157,5 @@ O_est  = [int(elem) for elem in input.readline().split()[1:]]
 # learn transition and emission probabilities
 A, B = baum_welch(A_est, B_est, O_est, pi_est)
 
-print(A)
-print(B)
+write_output(A)
+write_output(B)
