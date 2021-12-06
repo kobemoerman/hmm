@@ -127,6 +127,8 @@ def baum_welch(A, B, O, pi):
         beta = backward(A, B, O, pi, c)
 
         new_log_prob = compute_convergence(c, len(O))
+        print("----------> ", iter)
+        print("log probability: ", new_log_prob)
         if log_prob >= new_log_prob or iter > 100:
             break
 
@@ -154,16 +156,9 @@ def compute_convergence(c, n):
 
 # estimates
 input  = sys.stdin
-A_est  = [[0.54, 0.26, 0.20],
-          [0.19, 0.53, 0.28],
-          [0.22, 0.18, 0.60]]
-
-B_est  = [[0.50, 0.20, 0.11, 0.19],
-          [0.22, 0.28, 0.23, 0.27],
-          [0.19, 0.21, 0.15, 0.45]]
-
-pi_est = [0.3, 0.2, 0.5]
-
+A_est  = read_input(input.readline())
+B_est  = read_input(input.readline())
+pi_est = read_input(input.readline())[0]
 O_est  = [int(elem) for elem in input.readline().split()[1:]]
 
 # learn transition and emission probabilities
