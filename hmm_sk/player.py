@@ -3,8 +3,7 @@
 from player_controller_hmm import PlayerControllerHMMAbstract
 from constants import *
 import random
-from baum_welch import baum_welch, forward_not_normalized, forward
-import numpy as np
+from baum_welch import baum_welch, forward_norm, forward
 
 
 def almost_uniform(n):
@@ -15,7 +14,7 @@ def almost_uniform(n):
     return [r / normalizer for r in rnd]
 
 
-def stochastic_2(n):
+def stochastic(n):
     rnd = []
     for _ in range(0, n):
         rnd.append(random.uniform(0, 100))
@@ -23,28 +22,17 @@ def stochastic_2(n):
     return [r / normalizer for r in rnd]
 
 
-def stochastic(n, m):
-    matrix = np.random.rand(n, m)
-    return matrix / matrix.sum(axis=1)[:, None]
-
-
 class HMM:
     def __init__(self):
-        # self._A = [stochastic_2(N_SPECIES) for _ in range(0, N_SPECIES)]
-        # self._B = [stochastic_2(N_EMISSIONS) for _ in range(0, N_SPECIES)]
-        # self._pi = stochastic_2(N_SPECIES)
-        self._A = [almost_uniform(N_SPECIES) for _ in range(0, N_SPECIES)]
-        self._B = [almost_uniform(N_EMISSIONS) for _ in range(0, N_SPECIES)]
+        self._A = [stochastic(N_SPECIES) for _ in range(0, N_SPECIES)]
+        self._B = [stochastic(N_EMISSIONS) for _ in range(0, N_SPECIES)]
         self._pi = almost_uniform(N_SPECIES)
-        # self._A = stochastic(N_SPECIES, N_SPECIES)
-        # self._B = stochastic(N_SPECIES, N_EMISSIONS)
-        # self._pi = stochastic(1, N_SPECIES)[0]
 
     def update(self, observations):
         self._A, self._B, self._pi = baum_welch(self._A, self._B, observations, self._pi)
 
     def get_sim(self, observations):
-        return forward_not_normalized(self._A, self._B, observations, self._pi)
+        return forward(self._A, self._B, observations, self._pi)
         # return forward(self._A, self._B, observations, self._pi)[2]
 
 
@@ -68,15 +56,11 @@ class PlayerControllerHMM(PlayerControllerHMMAbstract):
         :return: None or a tuple (fish_id, fish_type)
         """
 
-        # This code would make a random guess on each step:
-        # return step % N_FISH, random.randint(0, N_SPECIES - 1)
-
         for i in range(0, N_FISH):
             self.observations[i].append(observations[i])
 
         # print(step)
         if step < N_STEPS - N_FISH:
-            # if step < 10:
             return None
 
         max_sim = 0

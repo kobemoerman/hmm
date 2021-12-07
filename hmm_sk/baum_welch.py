@@ -20,15 +20,14 @@ def backward(A, B, O, pi, c):
     return beta
 
 
-def forward(A, B, O, pi):
+def forward_norm(A, B, O, pi):
     c = []
-    alpha = []
     alpha_n = []
 
     # initialisation step
-    alpha.append([pi[s] * B[s][O[0]] for s in range(len(A))])
-    c.append(1 / (sum(alpha[0]) + sys.float_info.epsilon))
-    alpha_n.append([c[0] * alpha[0][s] for s in range(len(A))])
+    alpha = [pi[s] * B[s][O[0]] for s in range(len(A))]
+    c.append(1 / (sum(alpha) + sys.float_info.epsilon))
+    alpha_n.append([c[0] * alpha[s] for s in range(len(A))])
 
     # recursion step
     for t in range(1, len(O)):
@@ -38,14 +37,13 @@ def forward(A, B, O, pi):
             state.append(sum(forward_path))
 
         c.append(1 / (sum(state) + sys.float_info.epsilon))
-        alpha.append(state)
-        alpha_n.append([c[t] * alpha[t][i] for i in range(len(A))])
+        alpha_n.append([c[t] * state[i] for i in range(len(A))])
 
     # termination step
-    return alpha_n, c, sum(alpha_n[-1])
+    return alpha_n, c
 
 
-def forward_not_normalized(A, B, O, pi):
+def forward(A, B, O, pi):
     # initialisation step
     alpha = [[pi[s] * B[s][O[0]] for s in range(len(A))]]
 
@@ -120,14 +118,9 @@ def baum_welch(A, B, O, pi):
 
     while True:
         # forward and backward probabilities
-        alpha, c, _ = forward(A, B, O, pi)
+        alpha, c = forward_norm(A, B, O, pi)
         beta = backward(A, B, O, pi, c)
 
-        new_log_prob = compute_convergence(c, len(O))
-        if log_prob >= new_log_prob or iter > 5:
-            break
-
-        # print(str(iter) + ': ' + str(new_log_prob))
         # expectation step
         gamma, digamma = estimator(A, B, O, alpha, beta)
 
@@ -135,6 +128,10 @@ def baum_welch(A, B, O, pi):
         pi = maximise_pi(len(A), gamma)
         A = maximise_A(len(A), len(O) - 1, gamma, digamma)
         B = maximise_B(B, O, len(A), len(O), gamma)
+
+        new_log_prob = compute_convergence(c, len(O))
+        if log_prob >= new_log_prob or iter > 3:
+            break
 
         iter += 1
         log_prob = new_log_prob
@@ -146,6 +143,6 @@ def compute_convergence(c, n):
     log_prob = 0
 
     for i in range(0, n):
-        log_prob += math.log(c[i])
+        log_prob -= math.log(c[i])
 
-    return -log_prob
+    return log_prob
